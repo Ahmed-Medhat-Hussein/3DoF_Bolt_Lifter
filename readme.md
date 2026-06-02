@@ -111,9 +111,9 @@ pip install -r requirements.txt
 |   └── extra_files/
 |
 |── STLs/
-|   |── 
-|   |── 
-|   └── 
+|   |── Base_gear.STL
+|   |── Shoulder_gear.STL
+|   └── Elbow_gear.STL
 │
 └── tools/
     |── ROI_ext.py
