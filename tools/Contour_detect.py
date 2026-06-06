@@ -74,26 +74,29 @@ def get_standard_screw_size(length_mm, head_dia_mm, shaft_dia_mm):
 '''
 def find_shaft_in_profile(profile):
     """
-    Given a 1-D array of cross-section widths along the screw's long axis
-    (already rotated so the screw is horizontal), locate the shaft using T-shape logic.
-    """
-    SMOOTH_WIN   = 5      # smoothing kernel width (pixels)
-    kernel   = np.ones(SMOOTH_WIN) / SMOOTH_WIN
-    smoothed = np.convolve(profile, kernel, mode="same")
+    Locates the head and shaft diameters of a screw from a 1-D profile array.
 
-    max_w  = float(np.max(smoothed))
-    length = len(smoothed)
+    Parameters:
+        profile: 1-D array of cross-section widths along the screw's long axis.
+        head_thresh: Fraction of max width to consider as part of the head.
+        tip_ignore: Fraction of the profile length to ignore at the tip end.
+
+    Returns:
+        A tuple containing (head_diameter_px, shaft_diameter_px).
+    """
+    max_w  = float(np.max(profile))
+    length = len(profile)
 
     # Locate the head region
-    is_head     = smoothed >= (HEAD_THRESH * max_w)
-    head_widths = smoothed[is_head]
+    is_head     = profile >= (HEAD_THRESH * max_w)
+    head_widths = profile[is_head]
     head_dia_px = float(np.median(head_widths)) if len(head_widths) else max_w
 
     # Shaft zone
     tip_cut  = max(1, int(length * (1.0 - TIP_IGNORE)))
     not_head = ~is_head
     not_head[tip_cut:] = False
-    shaft_candidates = smoothed[not_head]
+    shaft_candidates = profile[not_head]
 
     if len(shaft_candidates) >= 3:
         sorted_c    = np.sort(shaft_candidates)
@@ -101,9 +104,9 @@ def find_shaft_in_profile(profile):
         shaft_dia_px = float(np.median(bottom_half))
     else:
         win = min(5, length)
-        best_mean, shaft_dia_px = np.inf, float(np.min(smoothed))
+        best_mean, shaft_dia_px = np.inf, float(np.min(profile))
         for i in range(length - win):
-            m = float(np.mean(smoothed[i:i + win]))
+            m = float(np.mean(profile[i:i + win]))
             if m < best_mean:
                 best_mean    = m
                 shaft_dia_px = m
