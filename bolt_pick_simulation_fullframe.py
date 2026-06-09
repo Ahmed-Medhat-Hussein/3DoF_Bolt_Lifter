@@ -7,7 +7,7 @@ from tools.Contour_detect import *
 from motion.MotionPlan import MotionPlanner3DoF
 
 # ── 1. CONFIGURATION AND DROP BIN MAPPING MATRIX ────────────────────────────
-IMAGE_PATH          = 'Test_Images/12.jpeg'   
+IMAGE_PATH          = 'Test_Images/8.jpg'   
 YOLO_WEIGHTS        = 'yolo_weights/best.pt'
 CALIB_FILE_PATH     = "Camera_Calibration/camera_calibration.npz" 
 MARKER_LENGTH       = 20.6              
@@ -140,8 +140,7 @@ def main():
                 
                 if polygon is not None:
                     geom = analyze_geometry(polygon, cropped_img.shape)
-                    size_num = get_standard_screw_size(geom[0]*pixel_scale, geom[1]*pixel_scale, geom[2]*pixel_scale)
-                    size_str = f"M{size_num}"
+                    size_str = get_standard_screw_size(geom[0]*pixel_scale, geom[1]*pixel_scale, geom[2]*pixel_scale)
                 
                 # Fetch pre-assigned sorting drop coordinates matching the screw size
                 drop_bin_pose = SORTING_BIN_MAP.get(size_str, SORTING_BIN_MAP["M??"])

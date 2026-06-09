@@ -22,6 +22,10 @@ def get_standard_screw_size(length_mm, head_dia_mm, shaft_dia_mm, confidence_thr
     """
     Optimized Screw Classifier using a weighted feature matrix and 
     confidence-gated outlier rejection.
+
+    Based on testing with the provided sample images, the shaft diameter is the most reliable feature for M-size classification,
+    while the head diameter provides secondary confirmation. Length is often the least reliable due to perspective distortion
+    and is therefore not included in the current weighted error calculation, but can be easily reintegrated if needed.
     """
     screw_database = {
         6:  {"length": 13.4, "head": 10.0, "shaft": 6.0},
@@ -35,20 +39,20 @@ def get_standard_screw_size(length_mm, head_dia_mm, shaft_dia_mm, confidence_thr
     # Priority weighting factors (Must sum to 1.0)
     # Shaft is given massive priority because it defines the fundamental M-size.
     W_SHAFT  = 0.70  
-    W_HEAD   = 0.15  
-    W_LENGTH = 0.15  
+    W_HEAD   = 0.30  
+    #W_LENGTH = 0.15  
 
     best_size = "??"  # Default to unknown instead of forcing a wrong match
     min_error = float('inf')
     
     for size, dims in screw_database.items():
         # Compute relative error profiles
-        err_length = ((length_mm - dims["length"]) / dims["length"]) ** 2
+        #err_length = ((length_mm - dims["length"]) / dims["length"]) ** 2
         err_head   = ((head_dia_mm - dims["head"]) / dims["head"]) ** 2
         err_shaft  = ((shaft_dia_mm - dims["shaft"]) / dims["shaft"]) ** 2
         
         # Apply the feature importance matrix weights
-        weighted_error = (W_LENGTH * err_length) + (W_HEAD * err_head) + (W_SHAFT * err_shaft)
+        weighted_error =  (W_HEAD * err_head) + (W_SHAFT * err_shaft)
         
         if weighted_error < min_error:
             min_error = weighted_error

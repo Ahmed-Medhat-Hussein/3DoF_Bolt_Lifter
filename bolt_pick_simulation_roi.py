@@ -10,7 +10,7 @@ from tools.Contour_detect import load_calibration, extract_screw_polygon, analyz
 from motion.MotionPlan import MotionPlanner3DoF
 
 # ── 1. CONFIGURATION & BATCH DROP MATRIX ─────────────────────────────────────
-IMAGE_PATH          = 'Test_Images/12.jpeg'  
+IMAGE_PATH          = 'Test_Images/8.jpg'  
 YOLO_WEIGHTS        = 'yolo_weights/best.pt'
 CALIB_FILE_PATH     = "Camera_Calibration/camera_calibration.npz" # Calibration file integrated
 MARKER_LENGTH       = 20.6              
@@ -39,6 +39,12 @@ def calculate_pick_profile(u_anchor, v_anchor, u_screw, v_screw, pixel_scale, ki
     X = MARKER_IN_BASE[0] + robot_diff[0]
     Y = MARKER_IN_BASE[1] + robot_diff[1]
     Z = MARKER_IN_BASE[2] + SCREW_Z_OFFSET
+    
+    # Print debug metrics showing intermediate coordinate calculation values
+    print(f"Measured Pixel Offsets: Delta u = {delta_u:+.0f} px, Delta v = {delta_v:+.0f} px")
+    print(f"Calculated Mm Offsets: dx cam = {dx_cam_mm:+.1f} mm, dy cam = {dy_cam_mm:+.1f} mm")
+    print(f"Resulting Physical World Coordinate Target Lock: X={X:.1f}, Y={Y:.1f}, Z={Z:.1f}")
+    
     angles = kinematics.inverse_kinematics(X, Y, Z)
     return angles, (X, Y, Z)
 
@@ -89,6 +95,9 @@ def main():
     if img is None:
         print(f"[ERROR] Could not load simulation image target path: {IMAGE_PATH}")
         return
+    
+    # Resize the image 
+    img = cv2.resize(img, (1280, 720))
 
     # Load Calibration Matrix configuration elements
     mtx, dist = load_calibration(CALIB_FILE_PATH)
@@ -118,6 +127,7 @@ def main():
         mc = corners[idx][0]
         u_anchor, v_anchor = float(np.mean(mc[:, 0])), float(np.mean(mc[:, 1]))
         pixel_scale = MARKER_LENGTH / np.linalg.norm(mc[0] - mc[1])
+        print(f"Base marker detected. Anchor at (u={u_anchor:.1f}, v={v_anchor:.1f}), Pixel Scale: {pixel_scale:.3f} mm/px")
     else:
         print("[ERROR] Base context marker missing. Calibration aborted.")
         return
@@ -149,8 +159,7 @@ def main():
                 
                 if polygon is not None:
                     geom = analyze_geometry(polygon, cropped_img.shape)
-                    size_num = get_standard_screw_size(geom[0]*pixel_scale, geom[1]*pixel_scale, geom[2]*pixel_scale)
-                    size_str = f"M{size_num}"
+                    size_str = get_standard_screw_size(geom[0]*pixel_scale, geom[1]*pixel_scale, geom[2]*pixel_scale)
                 
                 # Retrieve pre-assigned target dropdown tracking zones from our dictionary map
                 drop_bin_pose = SORTING_BIN_MAP.get(size_str, SORTING_BIN_MAP["M??"])
@@ -161,6 +170,9 @@ def main():
                 # Visual graphics display feedback adjustments
                 cv2.rectangle(display_img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 120), 2)
                 cv2.putText(display_img, size_str, (int(x1), int(y1)-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 2)
+                
+                # Draw localization vector line from ArUco marker center to the detected screw center
+                cv2.line(display_img, (int(u_anchor), int(v_anchor)), (int(u_screw), int(v_screw)), (255, 0, 0), 2)
             else:
                 cv2.rectangle(display_img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 1)
 
@@ -180,7 +192,7 @@ def main():
     ax1.axis('off')
     
     ax2 = fig.add_subplot(122, projection='3d')
-    print(f"\n[SIMULATION] Rendering compiled trajectory operations ({len(compiler.step_history)} updates)...")
+    print(f"\nRendering compiled trajectory operations ({len(compiler.step_history)} updates)...")
     
     for step_joints in compiler.step_history:
         draw_3d_robot(ax2, step_joints, kinematics, "NESTED BATCH CYCLE IN TRANSIT...")
