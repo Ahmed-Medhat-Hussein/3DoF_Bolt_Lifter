@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 from ultralytics import YOLO
 from Kinematics.kinematics import Kinematics3DOF
 import Kinematics.RobotConfig as cfg
-
-# Import modules directly from your vision math and motion planners
 from tools.Contour_detect import load_calibration, extract_screw_polygon, analyze_geometry, get_standard_screw_size
 from motion.MotionPlan import MotionPlanner3DoF
 
