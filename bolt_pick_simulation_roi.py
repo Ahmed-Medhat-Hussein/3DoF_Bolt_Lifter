@@ -7,8 +7,8 @@ import Kinematics.RobotConfig as cfg
 from tools.Contour_detect import load_calibration, extract_screw_polygon, analyze_geometry, get_standard_screw_size
 from motion.MotionPlan import MotionPlanner3DoF
 
-# ── 1. CONFIGURATION & BATCH DROP MATRIX ─────────────────────────────────────
-IMAGE_PATH          = 'Test_Images/8.jpg'  
+# ── CONFIGURATION & BATCH DROP MATRIX ─────────────────────────────────────
+IMAGE_PATH          = 'Test_Images/12.jpg'  
 YOLO_WEIGHTS        = 'yolo_weights/best.pt'
 CALIB_FILE_PATH     = "Camera_Calibration/camera_calibration.npz" # Calibration file integrated
 MARKER_LENGTH       = 20.6              
@@ -27,7 +27,7 @@ SORTING_BIN_MAP = {
     "M??": (45, 20.0, -90.0)  
 }
 
-# ── 2. COORDINATE TRANSFORM ENGINE ───────────────────────────────────────────
+# ── COORDINATE TRANSFORM  ───────────────────────────────────────────
 def calculate_pick_profile(u_anchor, v_anchor, u_screw, v_screw, pixel_scale, kinematics):
     delta_u   = u_screw - u_anchor
     delta_v   = v_screw - v_anchor
@@ -46,7 +46,7 @@ def calculate_pick_profile(u_anchor, v_anchor, u_screw, v_screw, pixel_scale, ki
     angles = kinematics.inverse_kinematics(X, Y, Z)
     return angles, (X, Y, Z)
 
-# ── 3. VIRTUAL TRACKING INTERPOLATOR ────────────────────────────────────────
+# ──  VIRTUAL TRACKING INTERPOLATOR ────────────────────────────────────────
 class VisualPathCompiler:
     def __init__(self):
         self.current_joints = [0.0, 60.0, -135.0] # Mechanical Home pose initialization
@@ -68,7 +68,7 @@ class VisualPathCompiler:
                 self.step_history.append(interp.tolist())
             self.current_joints = target_pose
 
-# ── 4. ANIMATION DISPLAY INTERFACE ─────────────────────────────────────────
+# ── ANIMATION DISPLAY INTERFACE ─────────────────────────────────────────
 def draw_3d_robot(ax, angles, kinematics, status_msg):
     ax.clear()
     t1, t2, t3 = angles
@@ -87,7 +87,7 @@ def draw_3d_robot(ax, angles, kinematics, status_msg):
     ax.set_zlabel('Z (mm)')
     ax.legend(loc='upper right')
 
-# ── 5. RUN EXECUTOR ─────────────────────────────────────────────────────────
+# ── RUN EXECUTOR ─────────────────────────────────────────────────────────
 def main():
     img = cv2.imread(IMAGE_PATH)
     if img is None:

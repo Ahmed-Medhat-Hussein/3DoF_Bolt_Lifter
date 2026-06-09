@@ -24,7 +24,7 @@ SORTING_BIN_MAP = {
     "M12": (45, 20.0, -90.0),
     "M??": (45, 20.0, -90.0)  
 }
-# ── 2. COORDINATE TRANSFORM ENGINE ───────────────────────────────────────────
+# ── COORDINATE TRANSFORM  ───────────────────────────────────────────
 def calculate_pick_profile(u_anchor, v_anchor, u_screw, v_screw, pixel_scale, kinematics):
     delta_u   = u_screw - u_anchor
     delta_v   = v_screw - v_anchor
@@ -37,7 +37,7 @@ def calculate_pick_profile(u_anchor, v_anchor, u_screw, v_screw, pixel_scale, ki
     angles = kinematics.inverse_kinematics(X, Y, Z)
     return angles, (X, Y, Z)
 
-# ── 3. VIRTUAL TRACKING HISTOGRAM INTERPOLATOR ──────────────────────────────
+# ── VIRTUAL TRACKING HISTOGRAM INTERPOLATOR ──────────────────────────────
 class VisualPathCompiler:
     def __init__(self):
         self.current_joints = [0.0, 60.0, -135.0] # Initial mechanical home setup
@@ -59,7 +59,7 @@ class VisualPathCompiler:
                 self.step_history.append(interp.tolist())
             self.current_joints = target_pose
 
-# ── 4. ANIMATION DISPLAY INTERFACE ─────────────────────────────────────────
+# ──  ANIMATION DISPLAY INTERFACE ─────────────────────────────────────────
 def draw_3d_robot(ax, angles, kinematics, status_msg):
     ax.clear()
     t1, t2, t3 = angles
@@ -78,7 +78,7 @@ def draw_3d_robot(ax, angles, kinematics, status_msg):
     ax.set_zlabel('Z (mm)')
     ax.legend(loc='upper right')
 
-# ── 5. RUN EXECUTOR ─────────────────────────────────────────────────────────
+# ──  RUN EXECUTOR ─────────────────────────────────────────────────────────
 def main():
     img = cv2.imread(IMAGE_PATH)
     if img is None:
@@ -156,14 +156,14 @@ def main():
             else:
                 cv2.rectangle(display_img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 1)
 
-    # ── 6. PROCESS SEQUENCES THROUGH THE REWRITTEN PLANNER ───────────────────
+    # ── PROCESS SEQUENCES THROUGH THE REWRITTEN PLANNER ───────────────────
     planner = MotionPlanner3DoF(port='MOCK')
     compiler = VisualPathCompiler()
 
     nested_master_sequence = planner.run_multi_screw_sorting_cycle(compiled_tasks)
     compiler.compile_simulated_sequence(nested_master_sequence)
 
-    # ── 7. PLAYBACK LIVE TRACKING STREAM ────────────────────────────────────
+    # ──  PLAYBACK LIVE TRACKING STREAM ────────────────────────────────────
     plt.ion()
     fig = plt.figure(figsize=(14, 7))
     ax1 = fig.add_subplot(121)
